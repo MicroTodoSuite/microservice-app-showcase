@@ -292,6 +292,22 @@ tr:last-child td { border-bottom: none; }
   color: var(--ink-300);
   margin-top: 16px;
 }
+.diagram + .diagram { margin-top: 22px; }
+.diagram-link { display: block; cursor: zoom-in; }
+.diagram-link img {
+  display: block;
+  height: auto;
+  max-width: 100%;
+}
+.diagram-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-300);
+}
+.diagram-transition {
+  margin: 34px 0 22px;
+  max-width: 720px;
+}
 
 /* --- Pipeline strip --- */
 .pipeline {
