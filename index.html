@@ -33,7 +33,6 @@
 
 <header class="hero" id="top">
   <div class="wrap">
-    <div class="eyebrow reveal is-visible">Engineering case study</div>
     <h1>
       <span class="line-mask"><span class="line-inner">A GitOps-delivered microservices</span></span>
       <span class="line-mask"><span class="line-inner">platform, built and operated</span></span>
@@ -45,21 +44,12 @@
       architecture decisions behind it, the security and delivery mechanics that carry every
       change into a cluster, and verifiable evidence of the platform's current state.
     </p>
-    <div class="stat-row reveal is-visible">
-      <div class="stat"><span class="n" data-count="5">0</span><span class="l">services, 4 languages</span></div>
-      <div class="stat"><span class="n" data-count="3">0</span><span class="l">architecture profiles evaluated</span></div>
-      <div class="stat"><span class="n" data-count="15">0</span><span class="l">delivered specifications</span></div>
-      <div class="stat"><span class="n" data-count="550" data-suffix="+">0</span><span class="l">pull requests merged</span></div>
-      <div class="stat"><span class="n" data-count="0">0</span><span class="l">static cloud credentials in CI</span></div>
-      <div class="stat"><span class="n" data-count="100" data-suffix="%">0</span><span class="l">digest-pinned deployments</span></div>
-    </div>
   </div>
 </header>
 
 <section id="context">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">01 — Project context</div>
       <h2>What MicroTodoSuite is, and what it was built to demonstrate</h2>
       <p>A distributed to-do application used as a vehicle to engineer a real platform: multiple
       languages, one contract, one delivery mechanism, and a security and observability posture
@@ -112,7 +102,6 @@
 <section id="decisions">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">02 — Architecture decisions</div>
       <h2>The decisions that shaped the platform, and why they were made</h2>
       <p>Each record below states the problem being solved, the options that were on the table,
       what was chosen, and the reasoning — not the order in which the work happened.</p>
@@ -248,7 +237,6 @@
 <section id="architecture">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">03 — Delivered architecture</div>
       <h2>The economical profile, as it was actually deployed</h2>
       <p>One EKS cluster, ArgoCD-reconciled, with namespaces standing in for environments and every
       dependency declared as a Kustomize root ArgoCD owns.</p>
@@ -363,7 +351,6 @@
 <section id="delivery">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">04 — Delivery pipeline</div>
       <h2>From a merged pull request to a running, verified digest</h2>
       <p>One reusable pipeline definition, pinned by commit SHA, called by a thin per-service caller
       workflow — so every service inherits the same security and promotion behavior without
@@ -415,7 +402,6 @@
 <section id="security">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">05 — Security</div>
       <h2>Supply chain and runtime enforcement</h2>
       <p>Security is enforced at two points: what is allowed to be built and signed, and what is
       allowed to run — the second does not trust the first without re-checking it.</p>
@@ -502,7 +488,6 @@
 <section id="observability">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">06 — Observability</div>
       <h2>Three pillars, owned by the platform, not by each service</h2>
       <p>A service earns metrics, traces, and structured logs by being deployed — it does not
       integrate a vendor SDK to get them.</p>
@@ -535,7 +520,6 @@
 <section id="testing">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">07 — Testing strategy</div>
       <h2>A pyramid, applied at the boundary that actually catches the failure</h2>
       <p>Unit tests verify logic; contract, integration, and end-to-end tests verify that five
       independently deployed services still agree with each other.</p>
@@ -581,7 +565,6 @@
 <section id="practice">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">08 — Engineering practice</div>
       <h2>How changes are proposed, reviewed, and kept honest</h2>
     </div>
     <div class="grid grid-2 reveal-group">
@@ -620,7 +603,6 @@
 <section id="gateway">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">09 — Slack approval gateway</div>
       <h2>Bringing the human-approval gate to where the team already works</h2>
       <p>Every change to any cluster passes through a required human review on the GitOps pull
       request. That review used to require someone to be inside GitHub to act on it; it does not
@@ -664,7 +646,6 @@
 <section id="state">
   <div class="wrap">
     <div class="section-head reveal">
-      <div class="section-num">10 — Verified state</div>
       <h2>What is provably true right now, and how it was checked</h2>
       <p>A platform's documentation is only as trustworthy as the evidence behind it. This section
       states plainly what is running, what is proven-but-idle, and what is designed-but-unapplied —

@@ -39,45 +39,4 @@
     );
     revealEls.forEach(function (el) { io.observe(el); });
   }
-
-  // Animated counters: count up once, exponential ease-out, matches stat-row data-count.
-  var counters = document.querySelectorAll("[data-count]");
-  var animateCounter = function (el) {
-    var target = parseFloat(el.getAttribute("data-count"));
-    var suffix = el.getAttribute("data-suffix") || "";
-    if (reduced || isNaN(target)) {
-      el.textContent = target + suffix;
-      return;
-    }
-    var duration = 1400;
-    var start = null;
-    var ease = function (x) { return x === 1 ? 1 : 1 - Math.pow(2, -10 * x); };
-    var tick = function (ts) {
-      if (start === null) start = ts;
-      var p = Math.min((ts - start) / duration, 1);
-      var value = Math.round(ease(p) * target);
-      el.textContent = value + suffix;
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-  };
-
-  if (counters.length) {
-    if (reduced || !("IntersectionObserver" in window)) {
-      counters.forEach(animateCounter);
-    } else {
-      var cio = new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              animateCounter(entry.target);
-              cio.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.6 }
-      );
-      counters.forEach(function (el) { cio.observe(el); });
-    }
-  }
 })();
