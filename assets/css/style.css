@@ -292,23 +292,6 @@ tr:last-child td { border-bottom: none; }
   color: var(--ink-300);
   margin-top: 16px;
 }
-.historic-imgs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-@media (max-width: 860px) { .historic-imgs { grid-template-columns: 1fr; } }
-.historic-imgs figure { margin: 0; }
-.historic-imgs img {
-  width: 100%;
-  border: 1px solid rgba(11,12,14,0.14);
-  display: block;
-  filter: grayscale(0.15);
-  transition: filter 0.4s var(--ease);
-}
-.historic-imgs img:hover { filter: grayscale(0); }
-.historic-imgs figcaption {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--ink-300);
-  margin-top: 12px;
-}
 
 /* --- Pipeline strip --- */
 .pipeline {

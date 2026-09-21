@@ -13,9 +13,8 @@ repositories, most directly `microservice-app-docs`.
 ## Content
 
 - Project context and the five owned services.
-- Architecture decision records: the original Azure PaaS proposal, why it was retired,
-  the economical/full profile split, build-once/promote-by-digest, and GitOps rollback
-  discipline.
+- Architecture decision records: the economical/full profile split, build-once/promote-
+  by-digest, and GitOps rollback discipline.
 - The delivered (economical) architecture, as a diagram.
 - The delivery pipeline: reusable SHA-pinned CI/CD workflows, OIDC-only authentication.
 - Supply-chain and runtime security: Trivy, Syft, Cosign keyless signing, Kyverno

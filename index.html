@@ -111,51 +111,6 @@
       <div class="decision-index">01</div>
       <div class="decision-body">
         <div class="decision-head">
-          <h3>From a single-cloud PaaS proposal to a GitOps-operated Kubernetes platform</h3>
-          <span class="status designed">superseded proposal</span>
-        </div>
-        <p>The platform did not start on AWS EKS. The original proposal, produced before any
-        infrastructure was provisioned, targeted Azure's managed application surface directly:
-        Azure API Management in front of App Services running each language runtime, an Azure
-        Function App for the Python log consumer, Cosmos DB and Cache for Redis as managed
-        dependencies, and Key Vault for secret storage. It was a reasonable starting design for a
-        team validating whether the service boundaries were right before investing in a delivery
-        mechanism.</p>
-        <div class="historic-imgs" style="margin-top:22px;">
-          <figure>
-            <img src="assets/img/initial-proposal.png" alt="Initial Azure-based proposal diagram: API Management, App Services per language runtime, Function App, Cosmos DB, Cache for Redis, Key Vault">
-            <figcaption>Initial proposal — Azure PaaS, service-per-App-Service</figcaption>
-          </figure>
-          <figure>
-            <img src="assets/img/azure-solution.png" alt="Implemented Azure Container Apps solution diagram: frontend, auth-api, users-api, todos-api, redis, log-message-processor, zipkin, prometheus, grafana behind a container registry and Terraform state">
-            <figcaption>First implementation — Azure Container Apps, Terraform-managed</figcaption>
-          </figure>
-        </div>
-        <div class="cols" style="margin-top:28px;">
-          <div>
-            <h4>Why it was retired</h4>
-            <ul>
-              <li>App Services and Container Apps couple the deployment unit to the cloud provider's own release model, which conflicts with an immutable-digest, git-reverted promotion discipline.</li>
-              <li>Observability was bolted on per service (self-hosted Zipkin, Prometheus, Grafana) rather than being a platform-level guarantee every service inherits for free.</li>
-              <li>There was no admission-time enforcement point: nothing stopped an unscanned or unsigned image from running.</li>
-            </ul>
-          </div>
-          <div>
-            <h4>What replaced it</h4>
-            <ul>
-              <li>AWS EKS as the runtime, with ArgoCD reconciling a Git repository as the only path to a running change — the deployment unit becomes a commit, not a provider API call.</li>
-              <li>Kustomize overlays separate environment-owned values (namespace, capacity, digest) from environment-neutral service definitions.</li>
-              <li>A shared, reusable CI/CD workflow set replaces per-service pipeline logic, so security and promotion behavior is defined once.</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="decision reveal">
-      <div class="decision-index">02</div>
-      <div class="decision-body">
-        <div class="decision-head">
           <h3>Two architecture profiles: economical and full</h3>
           <span class="status live">active decision</span>
         </div>
@@ -184,7 +139,7 @@
     </div>
 
     <div class="decision reveal">
-      <div class="decision-index">03</div>
+      <div class="decision-index">02</div>
       <div class="decision-body">
         <div class="decision-head">
           <h3>Build once, promote by immutable digest</h3>
@@ -207,7 +162,7 @@
     </div>
 
     <div class="decision reveal">
-      <div class="decision-index">04</div>
+      <div class="decision-index">03</div>
       <div class="decision-body">
         <div class="decision-head">
           <h3>GitOps discipline: git revert as the only rollback path</h3>
