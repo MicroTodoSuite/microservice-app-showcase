@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MicroTodoSuite — Engineering Case Study</title>
+<meta name="description" content="A technical case study of MicroTodoSuite: a GitOps-delivered microservices platform on AWS EKS, its architecture decisions, supply-chain security, observability and delivery pipeline.">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<nav class="topnav">
+  <div class="wrap">
+    <div class="brand">MicroTodoSuite<span class="dot">.</span></div>
+    <div class="navlinks">
+      <a href="#context">Context</a>
+      <a href="#decisions">Decisions</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#delivery">Delivery</a>
+      <a href="#security">Security</a>
+      <a href="#observability">Observability</a>
+      <a href="#testing">Testing</a>
+      <a href="#practice">Engineering practice</a>
+      <a href="#gateway">Approval gateway</a>
+      <a href="#state">Verified state</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Engineering case study</div>
+    <h1>A GitOps-delivered microservices platform, built and operated with production discipline.</h1>
+    <p class="lede">
+      MicroTodoSuite is a five-service distributed system delivered through a fully automated,
+      digest-pinned, signature-verified GitOps pipeline onto AWS EKS. This document is a record of
+      the architecture decisions behind it, the security and delivery mechanics that carry every
+      change into a cluster, and verifiable evidence of the platform's current state.
+    </p>
+    <div class="stat-row">
+      <div class="stat"><span class="n">5</span><span class="l">services, 4 languages</span></div>
+      <div class="stat"><span class="n">3</span><span class="l">architecture profiles evaluated</span></div>
+      <div class="stat"><span class="n">15</span><span class="l">delivered specifications</span></div>
+      <div class="stat"><span class="n">550+</span><span class="l">pull requests merged</span></div>
+      <div class="stat"><span class="n">0</span><span class="l">static cloud credentials in CI</span></div>
+      <div class="stat"><span class="n">100%</span><span class="l">digest-pinned deployments</span></div>
+    </div>
+  </div>
+</header>
+
+<section id="context">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">01 — Project context</div>
+      <h2>What MicroTodoSuite is, and what it was built to demonstrate</h2>
+      <p>A distributed to-do application used as a vehicle to engineer a real platform: multiple
+      languages, one contract, one delivery mechanism, and a security and observability posture
+      that holds regardless of which service is changing.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>Five independently owned services</h3>
+        <p>Each service is a separate repository with its own release cadence, contract tests, and
+        CI caller, coordinated only through published API contracts and a shared delivery
+        mechanism — never through shared code or a shared deploy step.</p>
+        <ul>
+          <li><code>auth-api</code> — Go, JWT issuance</li>
+          <li><code>todos-api</code> — Node.js, todo domain, Redis-backed events</li>
+          <li><code>users-api</code> — Java 17 / Spring Boot 3</li>
+          <li><code>log-message-processor</code> — Python, Redis stream consumer</li>
+          <li><code>frontend</code> — Vue 3</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>One organization, seven repositories</h3>
+        <p>Application code, delivery mechanism, infrastructure, shared CI/CD, and documentation are
+        deliberately split so that each has its own review ownership and blast radius.</p>
+        <ul>
+          <li><code>microservice-app-gitops</code> — ArgoCD source of truth</li>
+          <li><code>microservice-app-ops</code> — Terraform-managed AWS infrastructure</li>
+          <li><code>.github</code> — reusable, SHA-pinned CI/CD workflows</li>
+          <li><code>microservice-app-docs</code> — architecture decisions and status</li>
+          <li><code>microservice-app-slack-approval-gateway</code> — human-in-the-loop gate</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Spec-driven, not vibe-driven</h3>
+        <p>Every non-trivial change starts as a written specification — problem statement,
+        acceptance scenarios, and a task breakdown — reviewed before implementation begins, and
+        traced back to it in the pull request that closes it.</p>
+        <ul>
+          <li><code>spec.md</code> — problem and acceptance criteria</li>
+          <li><code>plan.md</code> — technical approach and trade-offs</li>
+          <li><code>tasks.md</code> — traceable, individually verifiable units of work</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="decisions">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">02 — Architecture decisions</div>
+      <h2>The decisions that shaped the platform, and why they were made</h2>
+      <p>Each decision below records the problem being solved, the options that were on the table,
+      what was chosen, and the reasoning — not the order in which the work happened.</p>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head">
+        <h3>ADR — From a single-cloud PaaS proposal to a GitOps-operated Kubernetes platform</h3>
+        <span class="badge designed">Superseded proposal</span>
+      </div>
+      <div class="decision-body">
+        <p>The platform did not start on AWS EKS. The original proposal, produced before any
+        infrastructure was provisioned, targeted Azure's managed application surface directly:
+        Azure API Management in front of App Services running each language runtime, an Azure
+        Function App for the Python log consumer, Cosmos DB and Cache for Redis as managed
+        dependencies, and Key Vault for secret storage. It was a reasonable starting design for a
+        team validating whether the service boundaries were right before investing in a delivery
+        mechanism.</p>
+        <div class="historic-imgs" style="margin-top:18px;">
+          <figure>
+            <img src="assets/img/initial-proposal.png" alt="Initial Azure-based proposal diagram: API Management, App Services per language runtime, Function App, Cosmos DB, Cache for Redis, Key Vault">
+            <figcaption>Initial proposal — Azure PaaS, service-per-App-Service</figcaption>
+          </figure>
+          <figure>
+            <img src="assets/img/azure-solution.png" alt="Implemented Azure Container Apps solution diagram: frontend, auth-api, users-api, todos-api, redis, log-message-processor, zipkin, prometheus, grafana behind a container registry and Terraform state">
+            <figcaption>First implementation — Azure Container Apps, Terraform-managed</figcaption>
+          </figure>
+        </div>
+        <div class="cols" style="margin-top:22px;">
+          <div>
+            <h4>Why it was retired</h4>
+            <ul>
+              <li>App Services and Container Apps couple the deployment unit to the cloud provider's own release model, which conflicts with an immutable-digest, git-reverted promotion discipline.</li>
+              <li>Observability was bolted on per service (self-hosted Zipkin, Prometheus, Grafana) rather than being a platform-level guarantee every service inherits for free.</li>
+              <li>There was no admission-time enforcement point: nothing stopped an unscanned or unsigned image from running.</li>
+            </ul>
+          </div>
+          <div>
+            <h4>What replaced it</h4>
+            <ul>
+              <li>AWS EKS as the runtime, with ArgoCD reconciling a Git repository as the only path to a running change — the deployment unit becomes a commit, not a provider API call.</li>
+              <li>Kustomize overlays separate environment-owned values (namespace, capacity, digest) from environment-neutral service definitions.</li>
+              <li>A shared, reusable CI/CD workflow set replaces per-service pipeline logic, so security and promotion behavior is defined once.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head">
+        <h3>ADR — Two architecture profiles: economical and full</h3>
+        <span class="badge live">Active decision</span>
+      </div>
+      <div class="decision-body">
+        <p>Rather than design one architecture and scale it up later, the platform was specified as
+        two explicit profiles from the start, so that the cost/complexity trade-off is a deliberate,
+        documented choice rather than an accident of what got built first.</p>
+        <div class="tbl-wrap" style="margin-top:18px;">
+          <table>
+            <thead>
+              <tr><th>Dimension</th><th>Economical profile</th><th>Full profile</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Cluster topology</td><td>1 EKS cluster, namespaces as environments</td><td>3 dedicated EKS clusters (dev/staging/prod)</td></tr>
+              <tr><td>Service mesh</td><td>None — direct in-cluster networking</td><td>Istio mesh, mTLS between services</td></tr>
+              <tr><td>Log/search backend</td><td>Loki</td><td>ECK-managed Elasticsearch</td></tr>
+              <tr><td>Monthly cost profile</td><td>Low — single control plane, small nodes</td><td>High — three control planes, mesh sidecars, ECK</td></tr>
+              <tr><td>Status</td><td class="status-live">Proven live (2026-09-14), now quiesced by design</td><td class="status-designed">Terraform and contract-tested, never applied</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin-top:16px;">The economical profile is the one that has actually run end to end.
+        The full profile exists as validated, contract-tested infrastructure code — every capability
+        it adds (mesh, per-environment isolation, ECK) has test coverage proving the Terraform and
+        manifests are correct, without paying to keep three clusters warm to prove it.</p>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head">
+        <h3>ADR — Build once, promote by immutable digest</h3>
+        <span class="badge live">Active decision</span>
+      </div>
+      <div class="decision-body">
+        <div class="cols">
+          <div>
+            <h4>Problem</h4>
+            <p>Rebuilding an image per environment risks promoting something that was never actually
+            tested — a dev build and a prod build of "the same" tag can differ.</p>
+          </div>
+          <div>
+            <h4>Decision</h4>
+            <p>An image is built exactly once per change, scanned, signed, and referenced everywhere
+            after that by its SHA-256 digest — never by a mutable tag. Promotion is a Kustomize
+            overlay update pointing to that same digest in the next environment.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <div class="decision-head">
+        <h3>ADR — GitOps discipline: git revert as the only rollback path</h3>
+        <span class="badge live">Active decision</span>
+      </div>
+      <div class="decision-body">
+        <div class="cols">
+          <div>
+            <h4>Problem</h4>
+            <p>Imperative <code>kubectl patch</code>/<code>scale</code> fixes drift from what's in
+            Git, and the next reconciliation silently reverts a hand-applied fix — a classic GitOps
+            failure mode.</p>
+          </div>
+          <div>
+            <h4>Decision</h4>
+            <p>No hand-applied mutation to managed state. A correction is a commit; a rollback is a
+            <code>git revert</code>. The single documented exception is an audited bootstrap boundary
+            for standing up ArgoCD itself, which cannot reconcile before it exists.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="architecture">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">03 — Delivered architecture</div>
+      <h2>The economical profile, as it was actually deployed</h2>
+      <p>One EKS cluster, ArgoCD-reconciled, with namespaces standing in for environments and every
+      dependency declared as a Kustomize root ArgoCD owns.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Economical architecture diagram">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b7488"/>
+          </marker>
+        </defs>
+        <style>
+          .box{fill:#141924;stroke:#232a38;stroke-width:1.2;rx:8;}
+          .boxAlt{fill:#11151d;stroke:#2a3f63;stroke-width:1.2;rx:8;}
+          .lbl{font-family:'SF Mono',monospace;font-size:12px;fill:#e6e9ef;}
+          .sub{font-family:'SF Mono',monospace;font-size:10.5px;fill:#9aa4b6;}
+          .grp{font-family:'SF Mono',monospace;font-size:10px;fill:#5ee6a8;text-transform:uppercase;letter-spacing:0.06em;}
+          .edge{stroke:#3a4356;stroke-width:1.3;fill:none;marker-end:url(#arrow);}
+        </style>
+
+        <text x="20" y="26" class="grp">Internet (dev workstation)</text>
+        <rect x="20" y="36" width="150" height="46" class="box"/>
+        <text x="35" y="58" class="lbl">kubectl</text>
+        <text x="35" y="72" class="sub">port-forward only</text>
+
+        <text x="230" y="26" class="grp">GitHub</text>
+        <rect x="230" y="36" width="180" height="46" class="box"/>
+        <text x="245" y="58" class="lbl">microservice-app-gitops</text>
+        <text x="245" y="72" class="sub">source of truth</text>
+
+        <path class="edge" d="M170,59 L228,59"/>
+
+        <rect x="480" y="36" width="200" height="46" class="boxAlt"/>
+        <text x="495" y="58" class="lbl">ArgoCD (self-managed)</text>
+        <text x="495" y="72" class="sub">continuous reconciliation</text>
+        <path class="edge" d="M410,59 L478,59"/>
+
+        <text x="60" y="140" class="grp">AWS EKS — eks-dev (single cluster)</text>
+        <rect x="40" y="150" width="1020" height="430" rx="10" fill="none" stroke="#232a38" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+        <text x="70" y="185" class="grp">namespace: dev</text>
+        <rect x="60" y="196" width="220" height="60" class="box"/>
+        <text x="75" y="220" class="lbl">frontend (Vue 3)</text>
+        <text x="75" y="236" class="sub">Envoy sidecar-free ingress-less</text>
+
+        <rect x="60" y="270" width="220" height="60" class="box"/>
+        <text x="75" y="294" class="lbl">auth-api (Go)</text>
+        <text x="75" y="310" class="sub">JWT issuance</text>
+
+        <rect x="60" y="344" width="220" height="60" class="box"/>
+        <text x="75" y="368" class="lbl">todos-api (Node.js)</text>
+        <text x="75" y="384" class="sub">todo domain</text>
+
+        <rect x="60" y="418" width="220" height="60" class="box"/>
+        <text x="75" y="442" class="lbl">users-api (Java / Spring)</text>
+        <text x="75" y="458" class="sub">user profile</text>
+
+        <rect x="60" y="492" width="220" height="60" class="box"/>
+        <text x="75" y="516" class="lbl">log-message-processor (Py)</text>
+        <text x="75" y="532" class="sub">Redis stream consumer</text>
+
+        <rect x="330" y="344" width="150" height="60" class="boxAlt"/>
+        <text x="345" y="368" class="lbl">Redis 7.4</text>
+        <text x="345" y="384" class="sub">shared dependency</text>
+
+        <path class="edge" d="M280,374 L328,374"/>
+        <path class="edge" d="M280,300 Q310,300 310,374 L328,374"/>
+        <path class="edge" d="M280,522 Q310,522 310,404 L328,404"/>
+
+        <text x="560" y="185" class="grp">infrastructure/ (ArgoCD-owned)</text>
+        <rect x="540" y="196" width="230" height="56" class="boxAlt"/>
+        <text x="555" y="218" class="lbl">Prometheus + Grafana</text>
+        <text x="555" y="234" class="sub">metrics</text>
+
+        <rect x="540" y="264" width="230" height="56" class="boxAlt"/>
+        <text x="555" y="286" class="lbl">Jaeger</text>
+        <text x="555" y="302" class="sub">distributed tracing</text>
+
+        <rect x="540" y="332" width="230" height="56" class="boxAlt"/>
+        <text x="555" y="354" class="lbl">Loki</text>
+        <text x="555" y="370" class="sub">log aggregation</text>
+
+        <rect x="540" y="400" width="230" height="56" class="boxAlt"/>
+        <text x="555" y="422" class="lbl">External Secrets Operator</text>
+        <text x="555" y="438" class="sub">fills JWT_SECRET in-cluster</text>
+
+        <rect x="540" y="468" width="230" height="56" class="boxAlt"/>
+        <text x="555" y="490" class="lbl">Kyverno</text>
+        <text x="555" y="506" class="sub">admission: signature + scan gate</text>
+
+        <text x="820" y="185" class="grp">Off-cluster</text>
+        <rect x="800" y="196" width="220" height="56" class="box"/>
+        <text x="815" y="218" class="lbl">ECR</text>
+        <text x="815" y="234" class="sub">signed, scanned images</text>
+
+        <rect x="800" y="264" width="220" height="56" class="box"/>
+        <text x="815" y="286" class="lbl">Secrets Manager</text>
+        <text x="815" y="302" class="sub">ephemeral write-only values</text>
+
+        <path class="edge" d="M600,90 L580,148"/>
+        <path class="edge" d="M580,59 Q1000,59 1000,148"/>
+      </svg>
+      <p class="diagram-caption">Fig. 1 — economical profile as validated on 2026-09-14. Ingress is
+      intentionally absent: operator access is `kubectl port-forward` only, by design (spec 004, US4).</p>
+    </div>
+  </div>
+</section>
+
+<section id="delivery">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">04 — Delivery pipeline</div>
+      <h2>From a merged pull request to a running, verified digest</h2>
+      <p>One reusable pipeline definition, pinned by commit SHA, called by a thin per-service caller
+      workflow — so every service inherits the same security and promotion behavior without
+      re-implementing it.</p>
+    </div>
+
+    <div class="pipeline" style="margin-bottom:36px;">
+      <div class="pipe-step">build</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">unit + contract tests</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">Trivy scan</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">Syft SBOM</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">Cosign sign (keyless)</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">push to ECR</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">promote/* PR (digest bump)</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">human review</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">ArgoCD sync</div><span class="pipe-arrow">→</span>
+      <div class="pipe-step">Kyverno verify</div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Reusable workflow set (<code>.github</code>)</h3>
+        <ul>
+          <li><code>ci.yml</code> — build, unit and contract tests, static analysis</li>
+          <li><code>release.yml</code> — scan, SBOM, sign, publish to ECR</li>
+          <li><code>promote.yml</code> — opens the digest-bump pull request into gitops</li>
+          <li><code>stack-tests.yml</code> — integration/E2E against the composed stack</li>
+        </ul>
+        <p style="margin-top:12px;">Every per-service caller pins these by commit SHA, not by tag or
+        branch — a compromised or force-pushed upstream workflow cannot silently change what runs
+        in a service's pipeline.</p>
+      </div>
+      <div class="card">
+        <h3>Authentication: OIDC only</h3>
+        <p>No static AWS or registry credential is stored anywhere in CI. Every job that needs AWS
+        access requests a short-lived token via GitHub's OIDC identity provider, scoped to that
+        repository and workflow by an IAM trust policy.</p>
+        <ul>
+          <li>GitHub Apps provide the automation identity for cross-repo actions (opening promotion PRs, merging via Slack) — never a personal access token.</li>
+          <li>Terraform ephemeral write-only variables (<code>*_wo</code>) carry secrets through a single <code>plan</code>/<code>apply</code> invocation and are never written to state.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="security">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">05 — Security</div>
+      <h2>Supply chain and runtime enforcement</h2>
+      <p>Security is enforced at two points: what is allowed to be built and signed, and what is
+      allowed to run — the second does not trust the first without re-checking it.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 1000 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Supply chain security flow">
+        <defs>
+          <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#6b7488"/>
+          </marker>
+        </defs>
+        <style>
+          .b{fill:#141924;stroke:#232a38;stroke-width:1.2;}
+          .ba{fill:#11151d;stroke:#2f6b52;stroke-width:1.2;}
+          .t{font-family:'SF Mono',monospace;font-size:12px;fill:#e6e9ef;}
+          .s{font-family:'SF Mono',monospace;font-size:10px;fill:#9aa4b6;}
+          .e{stroke:#3a4356;stroke-width:1.3;fill:none;marker-end:url(#arrow2);}
+        </style>
+        <rect x="20" y="90" width="150" height="60" rx="8" class="b"/>
+        <text x="35" y="115" class="t">Image build</text>
+        <text x="35" y="132" class="s">per-service Dockerfile</text>
+
+        <rect x="210" y="90" width="150" height="60" rx="8" class="b"/>
+        <text x="225" y="115" class="t">Trivy</text>
+        <text x="225" y="132" class="s">CVE scan gate</text>
+        <path class="e" d="M170,120 L208,120"/>
+
+        <rect x="400" y="90" width="150" height="60" rx="8" class="b"/>
+        <text x="415" y="115" class="t">Syft</text>
+        <text x="415" y="132" class="s">SBOM generation</text>
+        <path class="e" d="M360,120 L398,120"/>
+
+        <rect x="590" y="90" width="170" height="60" rx="8" class="ba"/>
+        <text x="605" y="112" class="t">Cosign (keyless)</text>
+        <text x="605" y="128" class="s">Fulcio cert + Rekor log</text>
+        <text x="605" y="142" class="s">signs image + SBOM</text>
+        <path class="e" d="M550,120 L588,120"/>
+
+        <rect x="800" y="90" width="170" height="60" rx="8" class="b"/>
+        <text x="815" y="115" class="t">Amazon ECR</text>
+        <text x="815" y="132" class="s">digest-addressed image</text>
+        <path class="e" d="M760,120 L798,120"/>
+
+        <rect x="590" y="190" width="170" height="60" rx="8" class="ba"/>
+        <text x="605" y="212" class="t">Kyverno (admission)</text>
+        <text x="605" y="228" class="s">verifies Cosign signature</text>
+        <text x="605" y="242" class="s">+ Rekor transparency proof</text>
+        <path class="e" d="M885,150 L885,175 L760,220"/>
+
+        <rect x="360" y="190" width="180" height="60" rx="8" class="b"/>
+        <text x="375" y="212" class="t">Pod admitted / rejected</text>
+        <text x="375" y="228" class="s">unsigned image → denied</text>
+        <path class="e" d="M588,220 L542,220"/>
+      </svg>
+      <p class="diagram-caption">Fig. 2 — an image that reaches the cluster without a valid Cosign
+      signature verifiable against Rekor's transparency log is rejected at admission, not merely
+      flagged.</p>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:32px;">
+      <div class="card">
+        <h3>Supply chain</h3>
+        <ul>
+          <li>Trivy blocks the pipeline on high/critical CVEs before an image is signed.</li>
+          <li>Syft-generated SBOMs are published alongside the image, not produced on demand later.</li>
+          <li>Cosign keyless signing removes long-lived signing keys entirely — trust is anchored to Sigstore's Fulcio CA and Rekor's public transparency log.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Runtime and cluster</h3>
+        <ul>
+          <li>Kyverno re-verifies signatures at admission — a signed-but-tampered or resigned image is caught independently of the pipeline that produced it.</li>
+          <li>No secret value is committed to Git; the External Secrets Operator fills contracts like <code>auth-api-secrets/JWT_SECRET</code> in-cluster.</li>
+          <li>GitOps discipline itself is a security control: the only path to a running change is a reviewed commit, which makes every production mutation attributable and revertible.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="observability">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">06 — Observability</div>
+      <h2>Three pillars, owned by the platform, not by each service</h2>
+      <p>A service earns metrics, traces, and structured logs by being deployed — it does not
+      integrate a vendor SDK to get them.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <h3><span class="badge live">metrics</span></h3>
+        <p>Prometheus scrapes every service; Grafana dashboards are provisioned as code alongside
+        the services they chart, including request-latency histograms with explicit bucket
+        boundaries validated per service.</p>
+      </div>
+      <div class="card">
+        <h3><span class="badge live">traces</span></h3>
+        <p>Jaeger in the economical profile; the full profile's design carries the same trace
+        propagation through an Istio mesh, so a request can be followed end to end without any
+        service authoring its own tracing glue.</p>
+      </div>
+      <div class="card">
+        <h3><span class="badge live">logs</span></h3>
+        <p>Loki aggregates structured logs in the economical profile. The full profile's design
+        swaps in ECK-managed Elasticsearch for higher query volume and longer retention, without
+        changing what a service has to emit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="testing">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">07 — Testing strategy</div>
+      <h2>A pyramid, applied at the boundary that actually catches the failure</h2>
+      <p>Unit tests verify logic; contract, integration, and end-to-end tests verify that five
+      independently deployed services still agree with each other.</p>
+    </div>
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>Unit</h3>
+        <p>Per-service, per-language, run on every pull request as the fastest gate in <code>ci.yml</code>.</p>
+      </div>
+      <div class="card">
+        <h3>Contract</h3>
+        <p>Spectral lints published OpenAPI specs; Pact verifies consumer-driven contracts between
+        the frontend and each API it calls; Schemathesis fuzzes API implementations against their
+        own schema.</p>
+      </div>
+      <div class="card">
+        <h3>Integration</h3>
+        <p>Testcontainers spins up real dependencies (Redis, databases) rather than mocking them —
+        a lesson carried from a prior incident where a mocked dependency masked a real migration
+        failure.</p>
+      </div>
+      <div class="card">
+        <h3>End-to-end</h3>
+        <p>Playwright drives the composed stack through <code>stack-tests.yml</code>, exercising the
+        actual login → create-todo → view flow across all five services.</p>
+      </div>
+      <div class="card">
+        <h3>Performance</h3>
+        <p>Locust load-tests the composed stack to establish baseline latency and throughput before
+        a capacity-affecting change ships.</p>
+      </div>
+      <div class="card">
+        <h3>DAST</h3>
+        <p>OWASP ZAP scans the running stack for exploitable behavior that static analysis and unit
+        tests structurally cannot see.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="practice">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">08 — Engineering practice</div>
+      <h2>How changes are proposed, reviewed, and kept honest</h2>
+    </div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Spec-Driven Development</h3>
+        <p>Every feature is specified before it is implemented, and the specification's task list
+        is what a pull request is measured against — not a green check or a rendered manifest. A
+        task is marked complete only after its named artifact is located and inspected.</p>
+      </div>
+      <div class="card">
+        <h3>Trunk-based development</h3>
+        <p>Short-lived branches, one concern per branch, Conventional Commit titles with a scope.
+        The failing-test commit that specifies a change is committed before the implementation that
+        makes it pass, and the pair is never squashed — it is the recorded evidence the cycle was
+        followed.</p>
+      </div>
+      <div class="card">
+        <h3>Review gates that cannot be bypassed by the author</h3>
+        <p>CODEOWNERS ties path ownership to required reviewers. No agent — human-directed or
+        automated — merges with an admin override, force-pushes to <code>main</code>, or approves
+        its own pull request. An automation identity may open and describe a change; only a named
+        human unlocks the gate.</p>
+      </div>
+      <div class="card">
+        <h3>Reconciliation over silent edits</h3>
+        <p>When a specification and reality disagree — a pinned version nobody actually shipped, a
+        task register that doesn't match the code — the fix is a recorded reconciliation decision,
+        not a quiet edit that erases the discrepancy.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gateway">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">09 — Slack approval gateway</div>
+      <h2>Bringing the human-approval gate to where the team already works</h2>
+      <p>Every change to any cluster passes through a required human review on the GitOps pull
+      request. That review used to require someone to be inside GitHub to act on it; it does not
+      anymore.</p>
+    </div>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>What it does</h3>
+        <ul>
+          <li>A GitHub App posts a Slack message for every gitops pull request, with a plain-language,
+          model-generated summary of what the change does and why — built strictly from the pull
+          request's own validated sections, never invented.</li>
+          <li>An authorized reviewer approves or requests changes directly from Slack; the app mints a
+          short-lived GitHub App installation token and acts through the standard review API — this
+          counts toward the branch's required review count exactly as a normal review would.</li>
+          <li>Deployment-gate pauses (the separate <code>environment: prod</code> approval each service's
+          own pipeline enforces) get a rich Slack notification with a direct link, since that gate's
+          human-identity requirement cannot be satisfied by an app — GitHub's own approval UI is kept
+          exactly as it is.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>How it is built</h3>
+        <ul>
+          <li>Two AWS Lambda functions behind an API Gateway HTTP API — no always-on server, no new
+          cluster ingress.</li>
+          <li>Groq's OpenAI-compatible API drafts the non-technical summary; the prompt supplies only
+          the pull request's own verbatim sections as ground truth.</li>
+          <li>An Infracost cost estimate is attached to the same message, so a reviewer sees the
+          change's cost impact next to its technical description.</li>
+          <li>Every credential — the GitHub App key, the Slack signing secret, the Groq key — is an
+          ephemeral, write-only Terraform variable in AWS Secrets Manager, never a static CI secret.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="state">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-num">10 — Verified state</div>
+      <h2>What is provably true right now, and how it was checked</h2>
+      <p>A platform's documentation is only as trustworthy as the evidence behind it. This section
+      states plainly what is running, what is proven-but-idle, and what is designed-but-unapplied —
+      each claim tied to a verification date and method, not to intent.</p>
+    </div>
+
+    <div class="grid grid-2" style="margin-bottom:32px;">
+      <div class="card">
+        <h3><span class="badge warn">quiesced by design</span></h3>
+        <p>The economical AWS/EKS runtime was fully validated on 2026-09-14 — 40 ArgoCD Applications
+        reported <code>Healthy</code>, exercising every service and infrastructure root together —
+        and was deliberately torn down via <code>terraform destroy</code> the following day. This is
+        a cost-discipline decision, not an outage: standing infrastructure costs money whether or
+        not it is being exercised, and the platform's value is demonstrated by its ability to be
+        proven and rebuilt on demand, not by being left running.</p>
+      </div>
+      <div class="card">
+        <h3><span class="badge designed">designed, never applied</span></h3>
+        <p>The full profile — three dedicated EKS clusters, an Istio mesh, ECK-managed Elasticsearch
+        — exists as Terraform and Kubernetes manifests with passing contract tests for every
+        capability it adds. As of the last verification (2026-09-20), every managed cluster
+        registration for <code>eks-full-dev/staging/prod</code> activates zero applications and zero
+        infrastructure roots: it has never been applied to real infrastructure. This is stated here
+        exactly as documented, not rounded up.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>How to verify these claims independently</h3>
+      <p>The status above is not a summary written from memory — it is read from an operator-facing
+      status document, updated and re-verified as of 2026-09-20, that records cluster-by-cluster
+      application counts, data-continuity limits (Redis is intentionally ephemeral pending a
+      separate continuity design), and traffic status (no public traffic is currently served
+      anywhere; DNS failover is gated behind a separate approval). That document, and the rollout
+      order and repository-ownership rules that govern how the full profile would be brought up if
+      that decision is made, live in <code>microservice-app-docs/full-platform/</code>.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <strong style="color:#e6e9ef;">MicroTodoSuite</strong><br>
+        A case study in delivering a distributed system with production-grade GitOps, supply-chain
+        security, and observability discipline.
+      </div>
+      <div>
+        <a href="https://github.com/MicroTodoSuite" target="_blank" rel="noopener">github.com/MicroTodoSuite</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
