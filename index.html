@@ -5,13 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MicroTodoSuite — Engineering Case Study</title>
 <meta name="description" content="A technical case study of MicroTodoSuite: a GitOps-delivered microservices platform on AWS EKS, its architecture decisions, supply-chain security, observability and delivery pipeline.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
 <nav class="topnav">
   <div class="wrap">
-    <div class="brand">MicroTodoSuite<span class="dot">.</span></div>
+    <a href="#top" class="brand">MicroTodoSuite<span class="dot">.</span></a>
     <div class="navlinks">
       <a href="#context">Context</a>
       <a href="#decisions">Decisions</a>
@@ -20,37 +23,42 @@
       <a href="#security">Security</a>
       <a href="#observability">Observability</a>
       <a href="#testing">Testing</a>
-      <a href="#practice">Engineering practice</a>
-      <a href="#gateway">Approval gateway</a>
-      <a href="#state">Verified state</a>
+      <a href="#practice">Practice</a>
+      <a href="#gateway">Gateway</a>
+      <a href="#state">State</a>
     </div>
+    <a class="nav-cta" href="https://github.com/MicroTodoSuite" target="_blank" rel="noopener">GitHub ↗</a>
   </div>
 </nav>
 
-<header class="hero">
+<header class="hero" id="top">
   <div class="wrap">
-    <div class="eyebrow">Engineering case study</div>
-    <h1>A GitOps-delivered microservices platform, built and operated with production discipline.</h1>
-    <p class="lede">
+    <div class="eyebrow reveal is-visible">Engineering case study</div>
+    <h1>
+      <span class="line-mask"><span class="line-inner">A GitOps-delivered microservices</span></span>
+      <span class="line-mask"><span class="line-inner">platform, built and operated</span></span>
+      <span class="line-mask"><span class="line-inner">with production discipline.</span></span>
+    </h1>
+    <p class="lede reveal is-visible">
       MicroTodoSuite is a five-service distributed system delivered through a fully automated,
-      digest-pinned, signature-verified GitOps pipeline onto AWS EKS. This document is a record of
-      the architecture decisions behind it, the security and delivery mechanics that carry every
+      digest-pinned, signature-verified GitOps pipeline onto AWS EKS. This is a record of the
+      architecture decisions behind it, the security and delivery mechanics that carry every
       change into a cluster, and verifiable evidence of the platform's current state.
     </p>
-    <div class="stat-row">
-      <div class="stat"><span class="n">5</span><span class="l">services, 4 languages</span></div>
-      <div class="stat"><span class="n">3</span><span class="l">architecture profiles evaluated</span></div>
-      <div class="stat"><span class="n">15</span><span class="l">delivered specifications</span></div>
-      <div class="stat"><span class="n">550+</span><span class="l">pull requests merged</span></div>
-      <div class="stat"><span class="n">0</span><span class="l">static cloud credentials in CI</span></div>
-      <div class="stat"><span class="n">100%</span><span class="l">digest-pinned deployments</span></div>
+    <div class="stat-row reveal is-visible">
+      <div class="stat"><span class="n" data-count="5">0</span><span class="l">services, 4 languages</span></div>
+      <div class="stat"><span class="n" data-count="3">0</span><span class="l">architecture profiles evaluated</span></div>
+      <div class="stat"><span class="n" data-count="15">0</span><span class="l">delivered specifications</span></div>
+      <div class="stat"><span class="n" data-count="550" data-suffix="+">0</span><span class="l">pull requests merged</span></div>
+      <div class="stat"><span class="n" data-count="0">0</span><span class="l">static cloud credentials in CI</span></div>
+      <div class="stat"><span class="n" data-count="100" data-suffix="%">0</span><span class="l">digest-pinned deployments</span></div>
     </div>
   </div>
 </header>
 
 <section id="context">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">01 — Project context</div>
       <h2>What MicroTodoSuite is, and what it was built to demonstrate</h2>
       <p>A distributed to-do application used as a vehicle to engineer a real platform: multiple
@@ -58,8 +66,8 @@
       that holds regardless of which service is changing.</p>
     </div>
 
-    <div class="grid grid-3">
-      <div class="card">
+    <div class="grid grid-3 reveal-group">
+      <div class="card reveal">
         <h3>Five independently owned services</h3>
         <p>Each service is a separate repository with its own release cadence, contract tests, and
         CI caller, coordinated only through published API contracts and a shared delivery
@@ -72,7 +80,7 @@
           <li><code>frontend</code> — Vue 3</li>
         </ul>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>One organization, seven repositories</h3>
         <p>Application code, delivery mechanism, infrastructure, shared CI/CD, and documentation are
         deliberately split so that each has its own review ownership and blast radius.</p>
@@ -84,7 +92,7 @@
           <li><code>microservice-app-slack-approval-gateway</code> — human-in-the-loop gate</li>
         </ul>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Spec-driven, not vibe-driven</h3>
         <p>Every non-trivial change starts as a written specification — problem statement,
         acceptance scenarios, and a task breakdown — reviewed before implementation begins, and
@@ -99,21 +107,24 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="decisions">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">02 — Architecture decisions</div>
       <h2>The decisions that shaped the platform, and why they were made</h2>
-      <p>Each decision below records the problem being solved, the options that were on the table,
+      <p>Each record below states the problem being solved, the options that were on the table,
       what was chosen, and the reasoning — not the order in which the work happened.</p>
     </div>
 
-    <div class="decision">
-      <div class="decision-head">
-        <h3>ADR — From a single-cloud PaaS proposal to a GitOps-operated Kubernetes platform</h3>
-        <span class="badge designed">Superseded proposal</span>
-      </div>
+    <div class="decision reveal">
+      <div class="decision-index">01</div>
       <div class="decision-body">
+        <div class="decision-head">
+          <h3>From a single-cloud PaaS proposal to a GitOps-operated Kubernetes platform</h3>
+          <span class="status designed">superseded proposal</span>
+        </div>
         <p>The platform did not start on AWS EKS. The original proposal, produced before any
         infrastructure was provisioned, targeted Azure's managed application surface directly:
         Azure API Management in front of App Services running each language runtime, an Azure
@@ -121,7 +132,7 @@
         dependencies, and Key Vault for secret storage. It was a reasonable starting design for a
         team validating whether the service boundaries were right before investing in a delivery
         mechanism.</p>
-        <div class="historic-imgs" style="margin-top:18px;">
+        <div class="historic-imgs" style="margin-top:22px;">
           <figure>
             <img src="assets/img/initial-proposal.png" alt="Initial Azure-based proposal diagram: API Management, App Services per language runtime, Function App, Cosmos DB, Cache for Redis, Key Vault">
             <figcaption>Initial proposal — Azure PaaS, service-per-App-Service</figcaption>
@@ -131,7 +142,7 @@
             <figcaption>First implementation — Azure Container Apps, Terraform-managed</figcaption>
           </figure>
         </div>
-        <div class="cols" style="margin-top:22px;">
+        <div class="cols" style="margin-top:28px;">
           <div>
             <h4>Why it was retired</h4>
             <ul>
@@ -152,16 +163,17 @@
       </div>
     </div>
 
-    <div class="decision">
-      <div class="decision-head">
-        <h3>ADR — Two architecture profiles: economical and full</h3>
-        <span class="badge live">Active decision</span>
-      </div>
+    <div class="decision reveal">
+      <div class="decision-index">02</div>
       <div class="decision-body">
+        <div class="decision-head">
+          <h3>Two architecture profiles: economical and full</h3>
+          <span class="status live">active decision</span>
+        </div>
         <p>Rather than design one architecture and scale it up later, the platform was specified as
         two explicit profiles from the start, so that the cost/complexity trade-off is a deliberate,
         documented choice rather than an accident of what got built first.</p>
-        <div class="tbl-wrap" style="margin-top:18px;">
+        <div class="tbl-wrap" style="margin-top:22px;">
           <table>
             <thead>
               <tr><th>Dimension</th><th>Economical profile</th><th>Full profile</th></tr>
@@ -171,23 +183,24 @@
               <tr><td>Service mesh</td><td>None — direct in-cluster networking</td><td>Istio mesh, mTLS between services</td></tr>
               <tr><td>Log/search backend</td><td>Loki</td><td>ECK-managed Elasticsearch</td></tr>
               <tr><td>Monthly cost profile</td><td>Low — single control plane, small nodes</td><td>High — three control planes, mesh sidecars, ECK</td></tr>
-              <tr><td>Status</td><td class="status-live">Proven live (2026-09-14), now quiesced by design</td><td class="status-designed">Terraform and contract-tested, never applied</td></tr>
+              <tr><td>Status</td><td><span class="status live">proven live, now quiesced</span></td><td><span class="status designed">contract-tested, never applied</span></td></tr>
             </tbody>
           </table>
         </div>
-        <p style="margin-top:16px;">The economical profile is the one that has actually run end to end.
+        <p style="margin-top:20px;">The economical profile is the one that has actually run end to end.
         The full profile exists as validated, contract-tested infrastructure code — every capability
         it adds (mesh, per-environment isolation, ECK) has test coverage proving the Terraform and
         manifests are correct, without paying to keep three clusters warm to prove it.</p>
       </div>
     </div>
 
-    <div class="decision">
-      <div class="decision-head">
-        <h3>ADR — Build once, promote by immutable digest</h3>
-        <span class="badge live">Active decision</span>
-      </div>
+    <div class="decision reveal">
+      <div class="decision-index">03</div>
       <div class="decision-body">
+        <div class="decision-head">
+          <h3>Build once, promote by immutable digest</h3>
+          <span class="status live">active decision</span>
+        </div>
         <div class="cols">
           <div>
             <h4>Problem</h4>
@@ -204,12 +217,13 @@
       </div>
     </div>
 
-    <div class="decision">
-      <div class="decision-head">
-        <h3>ADR — GitOps discipline: git revert as the only rollback path</h3>
-        <span class="badge live">Active decision</span>
-      </div>
+    <div class="decision reveal">
+      <div class="decision-index">04</div>
       <div class="decision-body">
+        <div class="decision-head">
+          <h3>GitOps discipline: git revert as the only rollback path</h3>
+          <span class="status live">active decision</span>
+        </div>
         <div class="cols">
           <div>
             <h4>Problem</h4>
@@ -229,29 +243,31 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="architecture">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">03 — Delivered architecture</div>
       <h2>The economical profile, as it was actually deployed</h2>
       <p>One EKS cluster, ArgoCD-reconciled, with namespaces standing in for environments and every
       dependency declared as a Kustomize root ArgoCD owns.</p>
     </div>
 
-    <div class="diagram">
+    <div class="diagram reveal">
       <svg viewBox="0 0 1100 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Economical architecture diagram">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="#6b7488"/>
+            <path d="M0,0 L10,5 L0,10 z" fill="#7b808c"/>
           </marker>
         </defs>
         <style>
-          .box{fill:#141924;stroke:#232a38;stroke-width:1.2;rx:8;}
-          .boxAlt{fill:#11151d;stroke:#2a3f63;stroke-width:1.2;rx:8;}
-          .lbl{font-family:'SF Mono',monospace;font-size:12px;fill:#e6e9ef;}
-          .sub{font-family:'SF Mono',monospace;font-size:10.5px;fill:#9aa4b6;}
-          .grp{font-family:'SF Mono',monospace;font-size:10px;fill:#5ee6a8;text-transform:uppercase;letter-spacing:0.06em;}
-          .edge{stroke:#3a4356;stroke-width:1.3;fill:none;marker-end:url(#arrow);}
+          .box{fill:#faf8f2;stroke:rgba(11,12,14,0.16);stroke-width:1.2;}
+          .boxAlt{fill:#ede9df;stroke:rgba(11,12,14,0.2);stroke-width:1.2;}
+          .lbl{font-family:'JetBrains Mono',monospace;font-size:12px;fill:#0b0c0e;}
+          .sub{font-family:'JetBrains Mono',monospace;font-size:10.5px;fill:#7b808c;}
+          .grp{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#88b31c;text-transform:uppercase;letter-spacing:0.06em;}
+          .edge{stroke:#b7b2a2;stroke-width:1.3;fill:none;marker-end:url(#arrow);}
         </style>
 
         <text x="20" y="26" class="grp">Internet (dev workstation)</text>
@@ -272,7 +288,7 @@
         <path class="edge" d="M410,59 L478,59"/>
 
         <text x="60" y="140" class="grp">AWS EKS — eks-dev (single cluster)</text>
-        <rect x="40" y="150" width="1020" height="430" rx="10" fill="none" stroke="#232a38" stroke-width="1.4" stroke-dasharray="4 4"/>
+        <rect x="40" y="150" width="1020" height="430" rx="4" fill="none" stroke="rgba(11,12,14,0.18)" stroke-width="1.4" stroke-dasharray="4 4"/>
 
         <text x="70" y="185" class="grp">namespace: dev</text>
         <rect x="60" y="196" width="220" height="60" class="box"/>
@@ -342,9 +358,11 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="delivery">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">04 — Delivery pipeline</div>
       <h2>From a merged pull request to a running, verified digest</h2>
       <p>One reusable pipeline definition, pinned by commit SHA, called by a thin per-service caller
@@ -352,21 +370,21 @@
       re-implementing it.</p>
     </div>
 
-    <div class="pipeline" style="margin-bottom:36px;">
-      <div class="pipe-step">build</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">unit + contract tests</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">Trivy scan</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">Syft SBOM</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">Cosign sign (keyless)</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">push to ECR</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">promote/* PR (digest bump)</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">human review</div><span class="pipe-arrow">→</span>
-      <div class="pipe-step">ArgoCD sync</div><span class="pipe-arrow">→</span>
+    <div class="pipeline reveal" style="margin-bottom:44px;">
+      <div class="pipe-step">build</div>
+      <div class="pipe-step">unit + contract tests</div>
+      <div class="pipe-step">Trivy scan</div>
+      <div class="pipe-step">Syft SBOM</div>
+      <div class="pipe-step">Cosign sign (keyless)</div>
+      <div class="pipe-step">push to ECR</div>
+      <div class="pipe-step">promote/* PR (digest bump)</div>
+      <div class="pipe-step">human review</div>
+      <div class="pipe-step">ArgoCD sync</div>
       <div class="pipe-step">Kyverno verify</div>
     </div>
 
-    <div class="grid grid-2">
-      <div class="card">
+    <div class="grid grid-2 reveal-group">
+      <div class="card reveal">
         <h3>Reusable workflow set (<code>.github</code>)</h3>
         <ul>
           <li><code>ci.yml</code> — build, unit and contract tests, static analysis</li>
@@ -378,7 +396,7 @@
         branch — a compromised or force-pushed upstream workflow cannot silently change what runs
         in a service's pipeline.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Authentication: OIDC only</h3>
         <p>No static AWS or registry credential is stored anywhere in CI. Every job that needs AWS
         access requests a short-lived token via GitHub's OIDC identity provider, scoped to that
@@ -392,61 +410,63 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="security">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">05 — Security</div>
       <h2>Supply chain and runtime enforcement</h2>
       <p>Security is enforced at two points: what is allowed to be built and signed, and what is
       allowed to run — the second does not trust the first without re-checking it.</p>
     </div>
 
-    <div class="diagram">
+    <div class="diagram reveal">
       <svg viewBox="0 0 1000 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Supply chain security flow">
         <defs>
           <marker id="arrow2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="#6b7488"/>
+            <path d="M0,0 L10,5 L0,10 z" fill="#7b808c"/>
           </marker>
         </defs>
         <style>
-          .b{fill:#141924;stroke:#232a38;stroke-width:1.2;}
-          .ba{fill:#11151d;stroke:#2f6b52;stroke-width:1.2;}
-          .t{font-family:'SF Mono',monospace;font-size:12px;fill:#e6e9ef;}
-          .s{font-family:'SF Mono',monospace;font-size:10px;fill:#9aa4b6;}
-          .e{stroke:#3a4356;stroke-width:1.3;fill:none;marker-end:url(#arrow2);}
+          .b{fill:#faf8f2;stroke:rgba(11,12,14,0.16);stroke-width:1.2;}
+          .ba{fill:#ede9df;stroke:#88b31c;stroke-width:1.2;}
+          .t{font-family:'JetBrains Mono',monospace;font-size:12px;fill:#0b0c0e;}
+          .s{font-family:'JetBrains Mono',monospace;font-size:10px;fill:#7b808c;}
+          .e{stroke:#b7b2a2;stroke-width:1.3;fill:none;marker-end:url(#arrow2);}
         </style>
-        <rect x="20" y="90" width="150" height="60" rx="8" class="b"/>
+        <rect x="20" y="90" width="150" height="60" class="b"/>
         <text x="35" y="115" class="t">Image build</text>
         <text x="35" y="132" class="s">per-service Dockerfile</text>
 
-        <rect x="210" y="90" width="150" height="60" rx="8" class="b"/>
+        <rect x="210" y="90" width="150" height="60" class="b"/>
         <text x="225" y="115" class="t">Trivy</text>
         <text x="225" y="132" class="s">CVE scan gate</text>
         <path class="e" d="M170,120 L208,120"/>
 
-        <rect x="400" y="90" width="150" height="60" rx="8" class="b"/>
+        <rect x="400" y="90" width="150" height="60" class="b"/>
         <text x="415" y="115" class="t">Syft</text>
         <text x="415" y="132" class="s">SBOM generation</text>
         <path class="e" d="M360,120 L398,120"/>
 
-        <rect x="590" y="90" width="170" height="60" rx="8" class="ba"/>
+        <rect x="590" y="90" width="170" height="60" class="ba"/>
         <text x="605" y="112" class="t">Cosign (keyless)</text>
         <text x="605" y="128" class="s">Fulcio cert + Rekor log</text>
         <text x="605" y="142" class="s">signs image + SBOM</text>
         <path class="e" d="M550,120 L588,120"/>
 
-        <rect x="800" y="90" width="170" height="60" rx="8" class="b"/>
+        <rect x="800" y="90" width="170" height="60" class="b"/>
         <text x="815" y="115" class="t">Amazon ECR</text>
         <text x="815" y="132" class="s">digest-addressed image</text>
         <path class="e" d="M760,120 L798,120"/>
 
-        <rect x="590" y="190" width="170" height="60" rx="8" class="ba"/>
+        <rect x="590" y="190" width="170" height="60" class="ba"/>
         <text x="605" y="212" class="t">Kyverno (admission)</text>
         <text x="605" y="228" class="s">verifies Cosign signature</text>
         <text x="605" y="242" class="s">+ Rekor transparency proof</text>
         <path class="e" d="M885,150 L885,175 L760,220"/>
 
-        <rect x="360" y="190" width="180" height="60" rx="8" class="b"/>
+        <rect x="360" y="190" width="180" height="60" class="b"/>
         <text x="375" y="212" class="t">Pod admitted / rejected</text>
         <text x="375" y="228" class="s">unsigned image → denied</text>
         <path class="e" d="M588,220 L542,220"/>
@@ -456,8 +476,8 @@
       flagged.</p>
     </div>
 
-    <div class="grid grid-2" style="margin-top:32px;">
-      <div class="card">
+    <div class="grid grid-2 reveal-group" style="margin-top:36px;">
+      <div class="card reveal">
         <h3>Supply chain</h3>
         <ul>
           <li>Trivy blocks the pipeline on high/critical CVEs before an image is signed.</li>
@@ -465,7 +485,7 @@
           <li>Cosign keyless signing removes long-lived signing keys entirely — trust is anchored to Sigstore's Fulcio CA and Rekor's public transparency log.</li>
         </ul>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Runtime and cluster</h3>
         <ul>
           <li>Kyverno re-verifies signatures at admission — a signed-but-tampered or resigned image is caught independently of the pipeline that produced it.</li>
@@ -477,29 +497,31 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="observability">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">06 — Observability</div>
       <h2>Three pillars, owned by the platform, not by each service</h2>
       <p>A service earns metrics, traces, and structured logs by being deployed — it does not
       integrate a vendor SDK to get them.</p>
     </div>
-    <div class="grid grid-3">
-      <div class="card">
-        <h3><span class="badge live">metrics</span></h3>
+    <div class="grid grid-3 reveal-group">
+      <div class="card reveal">
+        <h3><span class="status live">metrics</span></h3>
         <p>Prometheus scrapes every service; Grafana dashboards are provisioned as code alongside
         the services they chart, including request-latency histograms with explicit bucket
         boundaries validated per service.</p>
       </div>
-      <div class="card">
-        <h3><span class="badge live">traces</span></h3>
+      <div class="card reveal">
+        <h3><span class="status live">traces</span></h3>
         <p>Jaeger in the economical profile; the full profile's design carries the same trace
         propagation through an Istio mesh, so a request can be followed end to end without any
         service authoring its own tracing glue.</p>
       </div>
-      <div class="card">
-        <h3><span class="badge live">logs</span></h3>
+      <div class="card reveal">
+        <h3><span class="status live">logs</span></h3>
         <p>Loki aggregates structured logs in the economical profile. The full profile's design
         swaps in ECK-managed Elasticsearch for higher query volume and longer retention, without
         changing what a service has to emit.</p>
@@ -508,42 +530,44 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="testing">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">07 — Testing strategy</div>
       <h2>A pyramid, applied at the boundary that actually catches the failure</h2>
       <p>Unit tests verify logic; contract, integration, and end-to-end tests verify that five
       independently deployed services still agree with each other.</p>
     </div>
-    <div class="grid grid-3">
-      <div class="card">
+    <div class="grid grid-3 reveal-group">
+      <div class="card reveal">
         <h3>Unit</h3>
         <p>Per-service, per-language, run on every pull request as the fastest gate in <code>ci.yml</code>.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Contract</h3>
         <p>Spectral lints published OpenAPI specs; Pact verifies consumer-driven contracts between
         the frontend and each API it calls; Schemathesis fuzzes API implementations against their
         own schema.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Integration</h3>
         <p>Testcontainers spins up real dependencies (Redis, databases) rather than mocking them —
         a lesson carried from a prior incident where a mocked dependency masked a real migration
         failure.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>End-to-end</h3>
         <p>Playwright drives the composed stack through <code>stack-tests.yml</code>, exercising the
         actual login → create-todo → view flow across all five services.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Performance</h3>
         <p>Locust load-tests the composed stack to establish baseline latency and throughput before
         a capacity-affecting change ships.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>DAST</h3>
         <p>OWASP ZAP scans the running stack for exploitable behavior that static analysis and unit
         tests structurally cannot see.</p>
@@ -552,34 +576,36 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="practice">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">08 — Engineering practice</div>
       <h2>How changes are proposed, reviewed, and kept honest</h2>
     </div>
-    <div class="grid grid-2">
-      <div class="card">
+    <div class="grid grid-2 reveal-group">
+      <div class="card reveal">
         <h3>Spec-Driven Development</h3>
         <p>Every feature is specified before it is implemented, and the specification's task list
         is what a pull request is measured against — not a green check or a rendered manifest. A
         task is marked complete only after its named artifact is located and inspected.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Trunk-based development</h3>
         <p>Short-lived branches, one concern per branch, Conventional Commit titles with a scope.
         The failing-test commit that specifies a change is committed before the implementation that
         makes it pass, and the pair is never squashed — it is the recorded evidence the cycle was
         followed.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Review gates that cannot be bypassed by the author</h3>
         <p>CODEOWNERS ties path ownership to required reviewers. No agent — human-directed or
         automated — merges with an admin override, force-pushes to <code>main</code>, or approves
         its own pull request. An automation identity may open and describe a change; only a named
         human unlocks the gate.</p>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>Reconciliation over silent edits</h3>
         <p>When a specification and reality disagree — a pinned version nobody actually shipped, a
         task register that doesn't match the code — the fix is a recorded reconciliation decision,
@@ -589,17 +615,19 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="gateway">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">09 — Slack approval gateway</div>
       <h2>Bringing the human-approval gate to where the team already works</h2>
       <p>Every change to any cluster passes through a required human review on the GitOps pull
       request. That review used to require someone to be inside GitHub to act on it; it does not
       anymore.</p>
     </div>
-    <div class="grid grid-2">
-      <div class="card">
+    <div class="grid grid-2 reveal-group">
+      <div class="card reveal">
         <h3>What it does</h3>
         <ul>
           <li>A GitHub App posts a Slack message for every gitops pull request, with a plain-language,
@@ -614,7 +642,7 @@
           exactly as it is.</li>
         </ul>
       </div>
-      <div class="card">
+      <div class="card reveal">
         <h3>How it is built</h3>
         <ul>
           <li>Two AWS Lambda functions behind an API Gateway HTTP API — no always-on server, no new
@@ -631,9 +659,11 @@
   </div>
 </section>
 
+<hr class="hairline wrap-hr">
+
 <section id="state">
   <div class="wrap">
-    <div class="section-head">
+    <div class="section-head reveal">
       <div class="section-num">10 — Verified state</div>
       <h2>What is provably true right now, and how it was checked</h2>
       <p>A platform's documentation is only as trustworthy as the evidence behind it. This section
@@ -641,9 +671,9 @@
       each claim tied to a verification date and method, not to intent.</p>
     </div>
 
-    <div class="grid grid-2" style="margin-bottom:32px;">
-      <div class="card">
-        <h3><span class="badge warn">quiesced by design</span></h3>
+    <div class="grid grid-2 reveal-group" style="margin-bottom:36px;">
+      <div class="card reveal">
+        <h3><span class="status warn">quiesced by design</span></h3>
         <p>The economical AWS/EKS runtime was fully validated on 2026-09-14 — 40 ArgoCD Applications
         reported <code>Healthy</code>, exercising every service and infrastructure root together —
         and was deliberately torn down via <code>terraform destroy</code> the following day. This is
@@ -651,8 +681,8 @@
         not it is being exercised, and the platform's value is demonstrated by its ability to be
         proven and rebuilt on demand, not by being left running.</p>
       </div>
-      <div class="card">
-        <h3><span class="badge designed">designed, never applied</span></h3>
+      <div class="card reveal">
+        <h3><span class="status designed">designed, never applied</span></h3>
         <p>The full profile — three dedicated EKS clusters, an Istio mesh, ECK-managed Elasticsearch
         — exists as Terraform and Kubernetes manifests with passing contract tests for every
         capability it adds. As of the last verification (2026-09-20), every managed cluster
@@ -662,9 +692,9 @@
       </div>
     </div>
 
-    <div class="card">
+    <div class="evidence-panel reveal">
       <h3>How to verify these claims independently</h3>
-      <p>The status above is not a summary written from memory — it is read from an operator-facing
+      <p class="prose">The status above is not a summary written from memory — it is read from an operator-facing
       status document, updated and re-verified as of 2026-09-20, that records cluster-by-cluster
       application counts, data-continuity limits (Redis is intentionally ephemeral pending a
       separate continuity design), and traffic status (no public traffic is currently served
@@ -679,7 +709,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div>
-        <strong style="color:#e6e9ef;">MicroTodoSuite</strong><br>
+        <strong style="color:var(--ink); font-family:var(--font-display);">MicroTodoSuite</strong><br>
         A case study in delivering a distributed system with production-grade GitOps, supply-chain
         security, and observability discipline.
       </div>
@@ -690,5 +720,6 @@
   </div>
 </footer>
 
+<script src="assets/js/main.js"></script>
 </body>
 </html>
