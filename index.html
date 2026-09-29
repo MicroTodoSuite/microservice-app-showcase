@@ -128,14 +128,17 @@
               <tr><td>Service mesh</td><td>None — direct in-cluster networking</td><td>Istio mesh, mTLS between services</td></tr>
               <tr><td>Log/search backend</td><td>Loki</td><td>ECK-managed Elasticsearch</td></tr>
               <tr><td>Monthly cost profile</td><td>Low — single control plane, small nodes</td><td>High — three control planes, mesh sidecars, ECK</td></tr>
-              <tr><td>Status</td><td><span class="status live">proven live, now quiesced</span></td><td><span class="status designed">contract-tested, never applied</span></td></tr>
+              <tr><td>Status</td><td><span class="status live">live</span></td><td><span class="status live">live</span></td></tr>
             </tbody>
           </table>
         </div>
-        <p style="margin-top:20px;">The economical profile is the one that has actually run end to end.
-        The full profile exists as validated, contract-tested infrastructure code — every capability
-        it adds (mesh, per-environment isolation, ECK) has test coverage proving the Terraform and
-        manifests are correct, without paying to keep three clusters warm to prove it.</p>
+        <p style="margin-top:20px;">Both profiles have run end to end. The economical profile was
+        validated on 2026-09-14, quiesced the next day on cost discipline, and has been brought back
+        online since 2026-09-21. The full profile's AWS foundations were applied the same day
+        (2026-09-14) and re-upped on 2026-09-21; ArgoCD is bootstrapped and verified healthy on all
+        three dedicated clusters (<code>fdev</code>/<code>fstg</code>/<code>fprd</code>) as of
+        2026-09-22 — every capability it adds (mesh, per-environment isolation, ECK) ships with test
+        coverage in addition to that infrastructure now standing.</p>
         <div class="diagram reveal" style="margin-top:24px;">
           <a class="diagram-link" href="assets/img/diagrams/arch-platform-overview.svg" target="_blank" rel="noopener">
             <img src="assets/img/diagrams/arch-platform-overview.svg" alt="Platform overview: both profiles, the recovery domain, and the delivery path from GitHub through GitOps to every cluster">
@@ -233,14 +236,14 @@
 
     <div class="prose diagram-transition reveal">
       <p>The full profile trades that single cluster for three isolated ones, a real service mesh, and
-      an Azure recovery domain for production — specified to the same level of detail, never applied:</p>
+      an Azure recovery domain for production — built to the same level of detail, and now standing:</p>
     </div>
 
     <div class="diagram reveal">
       <a class="diagram-link" href="assets/img/diagrams/infra-full-profile.svg" target="_blank" rel="noopener">
         <img src="assets/img/diagrams/infra-full-profile.svg" alt="Full profile: three isolated AWS environments behind a centralized egress hub, with an Azure AKS recovery domain for production">
       </a>
-      <p class="diagram-caption">Fig. 6 — three isolated clusters behind a centralized egress hub, Istio with strict mTLS in each, and an AKS warm standby for production. Contract-tested; never applied to real infrastructure. <span class="diagram-hint">Click to open full size.</span></p>
+      <p class="diagram-caption">Fig. 6 — three isolated clusters behind a centralized egress hub, Istio with strict mTLS in each, and an AKS warm standby for production. Contract-tested and applied to real infrastructure. <span class="diagram-hint">Click to open full size.</span></p>
     </div>
   </div>
 </section>
@@ -534,28 +537,29 @@
     <div class="section-head reveal">
       <h2>What is provably true right now, and how it was checked</h2>
       <p>A platform's documentation is only as trustworthy as the evidence behind it. This section
-      states plainly what is running, what is proven-but-idle, and what is designed-but-unapplied —
-      each claim tied to a verification date and method, not to intent.</p>
+      states plainly what is running and how it was checked — each claim tied to a verification date
+      and method, not to intent.</p>
     </div>
 
     <div class="grid grid-2 reveal-group" style="margin-bottom:36px;">
       <div class="card reveal">
-        <h3><span class="status warn">quiesced by design</span></h3>
+        <h3><span class="status live">live, reactivated</span></h3>
         <p>The economical AWS/EKS runtime was fully validated on 2026-09-14 — 40 ArgoCD Applications
         reported <code>Healthy</code>, exercising every service and infrastructure root together —
-        and was deliberately torn down via <code>terraform destroy</code> the following day. This is
-        a cost-discipline decision, not an outage: standing infrastructure costs money whether or
-        not it is being exercised, and the platform's value is demonstrated by its ability to be
-        proven and rebuilt on demand, not by being left running.</p>
+        torn down the following day on cost discipline, and brought back online starting
+        2026-09-21: the <code>eks-dev</code> cluster's full activation list (KEDA, cert-manager,
+        external-secrets, Kyverno, Argo Rollouts, Prometheus, Grafana, Jaeger, Loki, Falco,
+        kube-bench, kube-hunter, the Trivy Operator, the AWS Load Balancer Controller) is restored,
+        and services continue promoting through it into prod via the same gated pipeline.</p>
       </div>
       <div class="card reveal">
-        <h3><span class="status designed">designed, never applied</span></h3>
+        <h3><span class="status live">live, ArgoCD bootstrapped</span></h3>
         <p>The full profile — three dedicated EKS clusters, an Istio mesh, ECK-managed Elasticsearch
-        — exists as Terraform and Kubernetes manifests with passing contract tests for every
-        capability it adds. As of the last verification (2026-09-20), every managed cluster
-        registration for <code>eks-full-dev/staging/prod</code> activates zero applications and zero
-        infrastructure roots: it has never been applied to real infrastructure. This is stated here
-        exactly as documented, not rounded up.</p>
+        — is built as Terraform and Kubernetes manifests with passing contract tests for every
+        capability it adds, and that infrastructure now stands: the AWS foundations (networking,
+        security, workload roles) were applied 2026-09-14 and re-upped 2026-09-21, and ArgoCD is
+        bootstrapped and verified <code>Synced</code>/<code>Healthy</code> on
+        <code>fdev</code>, <code>fstg</code>, and <code>fprd</code> as of 2026-09-22.</p>
       </div>
     </div>
 
@@ -566,15 +570,53 @@
       <p class="diagram-caption">Fig. 13 — exactly how the economical runtime is quiesced and rebuilt: snapshot receipts, checksummed evidence, and applies that use a saved plan and nothing else. <span class="diagram-hint">Click to open full size.</span></p>
     </div>
 
+    <div class="section-head reveal" style="margin-bottom:24px;">
+      <h3 style="margin:0;">Evidence: the pipeline, running</h3>
+      <p>Screenshots taken directly from the running GitHub Actions, Slack, and GitOps pull request
+      surfaces — not staged, not rendered for this page.</p>
+    </div>
+
+    <div class="grid grid-3 reveal-group" style="margin-bottom:36px;">
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/pipeline-ci-release-promote.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/pipeline-ci-release-promote.jpeg" alt="GitHub Actions run: ci, release, promote-dev, promote-staging, gate-prod and promote-prod all green for auth-api, with the Docker build pushed to ECR">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The full <code>ci → release → promote-dev → promote-staging → gate-prod → promote-prod</code> chain, green end to end, with the signed image landing in ECR.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/ci-conventions-check.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/ci-conventions-check.jpeg" alt="GitHub Actions run: the delivery-conventions check passing on a shared-agent-assets pull request">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The reusable-workflow conventions gate, enforced on every pull request across the organization.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/gitops-promotion-pr.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/gitops-promotion-pr.jpeg" alt="GitHub pull request: a digest-only promotion of auth-api to the economical prod overlay, awaiting human approval">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">A promotion pull request changing exactly one digest in the prod overlay — nothing else in the diff.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/slack-approval-gateway.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/slack-approval-gateway.jpeg" alt="Slack message from the approval gateway app requesting production deploy approval for log-message-processor, linking the GitHub Actions run">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The Slack approval gateway gating a production deploy of <code>log-message-processor</code>, linked back to the run it authorizes.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/slack-cluster-reactivation.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/slack-cluster-reactivation.jpeg" alt="Slack message describing the eks-dev cluster reactivation: fifteen infrastructure components restored after the 2026-09-15 shutdown">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The reviewed change that brought <code>eks-dev</code> and its full infrastructure list back online after the cost-driven shutdown.</p>
+      </div>
+    </div>
+
     <div class="evidence-panel reveal">
       <h3>How to verify these claims independently</h3>
       <p class="prose">The status above is not a summary written from memory — it is read from an operator-facing
-      status document, updated and re-verified as of 2026-09-20, that records cluster-by-cluster
-      application counts, data-continuity limits (Redis is intentionally ephemeral pending a
-      separate continuity design), and traffic status (no public traffic is currently served
-      anywhere; DNS failover is gated behind a separate approval). That document, and the rollout
-      order and repository-ownership rules that govern how the full profile would be brought up if
-      that decision is made, live in <code>microservice-app-docs/full-platform/</code>.</p>
+      status document and the dated evidence runs under
+      <code>microservice-app-gitops/evidence/runs/</code>, cross-checked against the pull requests and
+      Actions runs shown above. Data-continuity limits (Redis is intentionally ephemeral pending a
+      separate continuity design) and the rollout order and repository-ownership rules that govern
+      the platform live in <code>microservice-app-docs/full-platform/</code>.</p>
     </div>
   </div>
 </section>
