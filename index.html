@@ -402,6 +402,26 @@
         </ul>
       </div>
     </div>
+
+    <div class="section-head reveal" style="margin-top:44px; margin-bottom:24px;">
+      <h3 style="margin:0;">Evidence: vulnerability scanning, running against the live cluster</h3>
+      <p>Trivy Operator's own Grafana dashboard, not a one-off CLI scan.</p>
+    </div>
+
+    <div class="grid grid-2 reveal-group">
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/security-trivy-vulnerabilities-dashboard.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/security-trivy-vulnerabilities-dashboard.jpeg" alt="Grafana Trivy vulnerabilities dashboard: 4 critical, 152 high, vulnerabilities by severity and by namespace over 7 days">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">Trivy Operator's findings charted over the last 7 days: critical and high counts, by severity and by namespace.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/security-trivy-vulnerabilities-by-image.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/security-trivy-vulnerabilities-by-image.jpeg" alt="Grafana table: high and critical vulnerabilities by workload image, container name and namespace">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The same dashboard broken down to the workload image and container that owns each finding — actionable, not just a count.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -440,6 +460,51 @@
         <img src="assets/img/diagrams/flow-observability.svg" alt="Observability flow: metrics, traces, logs and alerts from every workload to Grafana and a Slack channel">
       </a>
       <p class="diagram-caption">Fig. 12 — metrics, traces and logs from every workload to Grafana, plus the Alertmanager path to Slack for error-rate, latency and vulnerability alarms — a separate channel from the approval gateway below. <span class="diagram-hint">Click to open full size.</span></p>
+    </div>
+
+    <div class="section-head reveal" style="margin-top:44px; margin-bottom:24px;">
+      <h3 style="margin:0;">Evidence: the three pillars, queried live</h3>
+      <p>Screenshots from Grafana, Prometheus and Jaeger against the reactivated <code>eks-dev</code>
+      cluster — not mockups.</p>
+    </div>
+
+    <div class="grid grid-3 reveal-group">
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/observability-golden-signals-auth-api.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/observability-golden-signals-auth-api.jpeg" alt="Grafana golden-signals dashboard for auth-api: traffic, error rate and latency charts over the last hour">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The business-workload golden-signals dashboard for <code>auth-api</code>: traffic, error rate, and latency, provisioned as code.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/observability-golden-signals-business-metrics.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/observability-golden-signals-business-metrics.jpeg" alt="Grafana business metrics: todos created and deleted, sign-ins by outcome, charted per 5 minutes">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The same dashboard's business panels: todos created/deleted and sign-ins by outcome, not just infrastructure metrics.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/observability-grafana-datasources.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/observability-grafana-datasources.jpeg" alt="Grafana data sources: Jaeger, Loki and Prometheus connected and reachable">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">All three pillars wired into the same Grafana as live data sources — Jaeger, Loki, and Prometheus.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/observability-prometheus-targets.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/observability-prometheus-targets.jpeg" alt="Prometheus targets page: alertmanager-main and auth-api-canary ServiceMonitors reporting UP">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">Prometheus's own target health: every ServiceMonitor it scrapes reporting <code>UP</code>.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/observability-prometheus-alerts-inactive.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/observability-prometheus-alerts-inactive.jpeg" alt="Prometheus alerts page: alertmanager.rules group, all eight alerts INACTIVE">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The Alertmanager rule group loaded and evaluating, with all eight rules currently <code>INACTIVE</code> — a quiet platform, not a missing one.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/observability-jaeger-traces.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/observability-jaeger-traces.jpeg" alt="Jaeger trace search for todos-api: real traces spanning frontend, log-message-processor and todos-api">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">A real trace search in Jaeger: <code>frontend → todos-api → log-message-processor</code> spans, captured end to end.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -662,32 +727,10 @@
 <section id="state">
   <div class="wrap">
     <div class="section-head reveal">
-      <h2>What is provably true right now, and how it was checked</h2>
-      <p>A platform's documentation is only as trustworthy as the evidence behind it. This section
-      states plainly what is running and how it was checked — each claim tied to a verification date
-      and method, not to intent.</p>
-    </div>
-
-    <div class="grid grid-2 reveal-group" style="margin-bottom:36px;">
-      <div class="card reveal">
-        <h3><span class="status live">live, reactivated</span></h3>
-        <p>The economical AWS/EKS runtime was fully validated on 2026-09-14 — 40 ArgoCD Applications
-        reported <code>Healthy</code>, exercising every service and infrastructure root together —
-        torn down the following day on cost discipline, and brought back online starting
-        2026-09-21: the <code>eks-dev</code> cluster's full activation list (KEDA, cert-manager,
-        external-secrets, Kyverno, Argo Rollouts, Prometheus, Grafana, Jaeger, Loki, Falco,
-        kube-bench, kube-hunter, the Trivy Operator, the AWS Load Balancer Controller) is restored,
-        and services continue promoting through it into prod via the same gated pipeline.</p>
-      </div>
-      <div class="card reveal">
-        <h3><span class="status live">live, ArgoCD bootstrapped</span></h3>
-        <p>The full profile — three dedicated EKS clusters, an Istio mesh, ECK-managed Elasticsearch
-        — is built as Terraform and Kubernetes manifests with passing contract tests for every
-        capability it adds, and that infrastructure now stands: the AWS foundations (networking,
-        security, workload roles) were applied 2026-09-14 and re-upped 2026-09-21, and ArgoCD is
-        bootstrapped and verified <code>Synced</code>/<code>Healthy</code> on
-        <code>fdev</code>, <code>fstg</code>, and <code>fprd</code> as of 2026-09-22.</p>
-      </div>
+      <h2>A profile goes down and comes back — the same way every time</h2>
+      <p><code>aws-profile-lifecycle.sh</code> in <code>microservice-app-ops</code> is the only way the
+      runtime is created or destroyed. Applies use a saved plan and nothing else, and the way down
+      needs no GitOps pull request.</p>
     </div>
 
     <div class="diagram reveal" style="margin-bottom:36px;">
@@ -697,15 +740,37 @@
       <p class="diagram-caption">Fig. 13 — exactly how the economical runtime is quiesced and rebuilt: snapshot receipts, checksummed evidence, and applies that use a saved plan and nothing else. <span class="diagram-hint">Click to open full size.</span></p>
     </div>
 
-    <div class="evidence-panel reveal">
-      <h3>How to verify these claims independently</h3>
-      <p class="prose">The status above is not a summary written from memory — it is read from an operator-facing
-      status document and the dated evidence runs under
-      <code>microservice-app-gitops/evidence/runs/</code>, cross-checked against the pull requests and
-      Actions runs shown in the <a href="#delivery">Delivery</a> section above. Data-continuity limits
-      (Redis is intentionally ephemeral pending a separate continuity design) and the rollout order
-      and repository-ownership rules that govern the platform live in
-      <code>microservice-app-docs/full-platform/</code>.</p>
+    <div class="section-head reveal" style="margin-bottom:24px;">
+      <h3 style="margin:0;">Evidence: every Application, Healthy</h3>
+      <p>ArgoCD's own Applications view after the 2026-09-21 reactivation — every business and
+      infrastructure Application the economical profile owns, filtered to <code>Healthy</code>.</p>
+    </div>
+
+    <div class="grid grid-2 reveal-group">
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/argocd-applications-page1.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/argocd-applications-page1.jpeg" alt="ArgoCD Applications view filtered to Healthy: argocd, auth-api and frontend across dev/staging/prod/demo, all Healthy and Synced">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The root <code>argocd</code> app-of-apps and the business services' four environments — 34 Applications reporting <code>Healthy</code>.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/argocd-applications-page2.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/argocd-applications-page2.jpeg" alt="ArgoCD Applications view filtered to Healthy: infra-argo-rollouts, infra-cert-manager, infra-grafana, infra-keda and more, all Healthy and Synced">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The infrastructure Applications ArgoCD reconciles on its own: Argo Rollouts, cert-manager, the AWS Load Balancer Controller, Grafana, KEDA.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/argocd-applications-page3.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/argocd-applications-page3.jpeg" alt="ArgoCD Applications view filtered to Healthy: infra-kyverno, infra-loki, infra-prometheus, log-message-processor and todos-api environments, all Healthy and Synced">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">Kyverno, Loki, Prometheus and the Trivy Operator alongside <code>log-message-processor</code> and <code>todos-api</code>'s own environments.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/argocd-applications-page4.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/argocd-applications-page4.jpeg" alt="ArgoCD Applications view filtered to Healthy, last page: todos-api and users-api's remaining environments, all Healthy and Synced">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The last page of the same filter — <code>todos-api</code> and <code>users-api</code>'s remaining environments, closing out all 34.</p>
+      </div>
     </div>
   </div>
 </section>
