@@ -649,6 +649,22 @@
     <div class="tbl-wrap reveal" style="margin-bottom:28px;">
       <table>
         <thead>
+          <tr><th>Dimension</th><th>Economical profile</th><th>Full profile</th><th>Both, running together</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Monthly cost</td><td>Priced per change, not as one total (see FinOps below)</td><td><strong>USD 617.20</strong> — Infracost-verified against the applied plan</td><td>about <strong>USD 930</strong> — on-demand list price, not Infracost-verified</td></tr>
+          <tr><td>EKS control planes</td><td>1</td><td>3</td><td>4</td></tr>
+          <tr><td>NAT gateways</td><td>3 — one per AZ</td><td>2 — shared egress hub</td><td>5</td></tr>
+          <tr><td>Bootstrap nodes</td><td>2</td><td>3 — one per cluster</td><td>5</td></tr>
+          <tr><td>Transit Gateway attachments</td><td>0</td><td>3</td><td>3</td></tr>
+        </tbody>
+      </table>
+      <p class="diagram-caption" style="margin-top:14px;">Component counts and the combined list price come from <code>microservice-app-docs/full-platform/capacity-and-regions.md</code>. The full profile's own total below is the one figure on this page Infracost verified against a real applied plan.</p>
+    </div>
+
+    <div class="tbl-wrap reveal" style="margin-bottom:28px;">
+      <table>
+        <thead>
           <tr><th>Root</th><th>Scope</th><th>Real monthly cost (Infracost)</th></tr>
         </thead>
         <tbody>
@@ -685,18 +701,6 @@
       priced individually by the mechanism below instead.
     </p>
 
-    <div class="evidence-panel reveal" style="margin-bottom:32px;">
-      <h3>The ceiling, if every profile ran at once</h3>
-      <p class="prose">Nothing in the delivery discipline runs the economical cluster and all three full
-      clusters simultaneously — that is exactly the standing cost the quiesce/reactivate cycle exists
-      to avoid — but the number is documented for capacity planning: 4 EKS control planes, 5 NAT
-      gateways, 3 Transit Gateway attachments, 5 on-demand bootstrap nodes and 5 public IPv4 addresses,
-      at on-demand list price, come to about USD 1.28 an hour — about USD 31 a day, or about USD 930
-      for a month left running. That figure is a list-price ceiling from
-      <code>microservice-app-docs/full-platform/capacity-and-regions.md</code>, not an
-      Infracost-verified bill.</p>
-    </div>
-
     <div class="section-head reveal" style="margin-bottom:24px;">
       <h3 style="margin:0;">FinOps on every pull request, not just on the platform</h3>
       <p>A Terraform change is priced before it is reviewed, not after it is merged.</p>
@@ -709,15 +713,6 @@
       <div class="pipe-step">signed webhook to the approval gateway</div>
       <div class="pipe-step">dollar delta shown in Slack</div>
       <div class="pipe-step">reviewer approves or requests changes</div>
-    </div>
-
-    <div class="card reveal" style="max-width:780px;">
-      <h3>A real example</h3>
-      <p><a href="https://github.com/MicroTodoSuite/microservice-app-ops/pull/16" target="_blank" rel="noopener">microservice-app-ops#16</a>
-      added three AWS Secrets Manager secrets. Infracost evaluated the exact saved plan: planned-state
-      monthly cost <code>USD 322.5596</code>, with the additive feature delta called out on its own —
-      <code>USD 1.20/month</code> — so the reviewer approving from Slack saw precisely what the change
-      would add, not just the plan's total.</p>
     </div>
   </div>
 </section>
