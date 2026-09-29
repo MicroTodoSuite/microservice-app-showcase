@@ -25,6 +25,7 @@
       <a href="#testing">Testing</a>
       <a href="#practice">Practice</a>
       <a href="#gateway">Gateway</a>
+      <a href="#costs">Costs</a>
       <a href="#state">State</a>
       <a href="#team">Team</a>
     </div>
@@ -565,6 +566,93 @@
           ephemeral, write-only Terraform variable in AWS Secrets Manager, never a static CI secret.</li>
         </ul>
       </div>
+    </div>
+  </div>
+</section>
+
+<hr class="hairline wrap-hr">
+
+<section id="costs">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <h2>What the platform costs, and how a change's cost gets reviewed before it merges</h2>
+      <p>Every figure below comes from Infracost run against the exact Terraform that was actually
+      applied — not a spreadsheet estimate — and every pull request that changes infrastructure
+      carries its own cost delta into the same Slack message a reviewer approves from.</p>
+    </div>
+
+    <div class="tbl-wrap reveal" style="margin-bottom:28px;">
+      <table>
+        <thead>
+          <tr><th>Root</th><th>Scope</th><th>Real monthly cost (Infracost)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Hub networking (<code>shd</code>)</td><td>Shared egress and Transit Gateway hub, one per account</td><td>USD 73.00</td></tr>
+          <tr><td>Spoke networking × 3</td><td><code>fdev</code>, <code>fstg</code>, <code>fprd</code> — one VPC each</td><td>USD 36.50 each — USD 109.50 total</td></tr>
+          <tr><td>Workload × 3</td><td><code>fdev</code>, <code>fstg</code>, <code>fprd</code> — one EKS cluster and node group each</td><td>USD 144.90 each — USD 434.70 total</td></tr>
+          <tr><td><strong>Total, full-profile foundations</strong></td><td>Applied 2026-09-14, re-upped 2026-09-21</td><td><strong>USD 617.20 / month</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="grid grid-3 reveal-group" style="margin-bottom:32px;">
+      <div class="card reveal">
+        <h4 style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-300); margin:0 0 10px;">Projected weekly</h4>
+        <p style="font-family:var(--font-mono); font-size:24px; color:var(--ink); margin:0;">USD 142.43</p>
+      </div>
+      <div class="card reveal">
+        <h4 style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-300); margin:0 0 10px;">Projected monthly</h4>
+        <p style="font-family:var(--font-mono); font-size:24px; color:var(--ink); margin:0;">USD 617.20</p>
+      </div>
+      <div class="card reveal">
+        <h4 style="font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-300); margin:0 0 10px;">Projected annual</h4>
+        <p style="font-family:var(--font-mono); font-size:24px; color:var(--ink); margin:0;">USD 7,406.40</p>
+      </div>
+    </div>
+
+    <p class="prose reveal" style="max-width:760px; margin-bottom:32px;">
+      This is the AWS foundation layer actually standing today for the full profile: three isolated
+      networks, three EKS control planes and node groups, and the shared egress hub — verified by
+      Infracost against the exact saved Terraform plan for each root, not a list-price guess. It does
+      not yet include Istio, ECK-managed Elasticsearch, or any business workload, because none of
+      those are deployed (see <a href="#state">State</a>). It also does not include the economical
+      profile's own spend, which the evidence does not roll up into one figure — every change to it is
+      priced individually by the mechanism below instead.
+    </p>
+
+    <div class="evidence-panel reveal" style="margin-bottom:32px;">
+      <h3>The ceiling, if every profile ran at once</h3>
+      <p class="prose">Nothing in the delivery discipline runs the economical cluster and all three full
+      clusters simultaneously — that is exactly the standing cost the quiesce/reactivate cycle exists
+      to avoid — but the number is documented for capacity planning: 4 EKS control planes, 5 NAT
+      gateways, 3 Transit Gateway attachments, 5 on-demand bootstrap nodes and 5 public IPv4 addresses,
+      at on-demand list price, come to about USD 1.28 an hour — about USD 31 a day, or about USD 930
+      for a month left running. That figure is a list-price ceiling from
+      <code>microservice-app-docs/full-platform/capacity-and-regions.md</code>, not an
+      Infracost-verified bill.</p>
+    </div>
+
+    <div class="section-head reveal" style="margin-bottom:24px;">
+      <h3 style="margin:0;">FinOps on every pull request, not just on the platform</h3>
+      <p>A Terraform change is priced before it is reviewed, not after it is merged.</p>
+    </div>
+
+    <div class="pipeline reveal" style="margin-bottom:32px;">
+      <div class="pipe-step">PR touches a root</div>
+      <div class="pipe-step">infracost breakdown per changed root</div>
+      <div class="pipe-step">comment posted on the GitHub PR</div>
+      <div class="pipe-step">signed webhook to the approval gateway</div>
+      <div class="pipe-step">dollar delta shown in Slack</div>
+      <div class="pipe-step">reviewer approves or requests changes</div>
+    </div>
+
+    <div class="card reveal" style="max-width:780px;">
+      <h3>A real example</h3>
+      <p><a href="https://github.com/MicroTodoSuite/microservice-app-ops/pull/16" target="_blank" rel="noopener">microservice-app-ops#16</a>
+      added three AWS Secrets Manager secrets. Infracost evaluated the exact saved plan: planned-state
+      monthly cost <code>USD 322.5596</code>, with the additive feature delta called out on its own —
+      <code>USD 1.20/month</code> — so the reviewer approving from Slack saw precisely what the change
+      would add, not just the plan's total.</p>
     </div>
   </div>
 </section>
