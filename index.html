@@ -317,6 +317,45 @@
       </a>
       <p class="diagram-caption">Fig. 9 — the production canary decides for itself: Argo Rollouts shifts traffic in steps, gated by an AnalysisRun that queries real Prometheus error rate, not a synthetic probe. <span class="diagram-hint">Click to open full size.</span></p>
     </div>
+
+    <div class="section-head reveal" style="margin-top:44px; margin-bottom:24px;">
+      <h3 style="margin:0;">Evidence: the pipeline, running</h3>
+      <p>Screenshots taken directly from the running GitHub Actions, Slack, and GitOps pull request
+      surfaces — not staged, not rendered for this page.</p>
+    </div>
+
+    <div class="grid grid-3 reveal-group">
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/pipeline-ci-release-promote.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/pipeline-ci-release-promote.jpeg" alt="GitHub Actions run: ci, release, promote-dev, promote-staging, gate-prod and promote-prod all green for auth-api, with the Docker build pushed to ECR">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The full <code>ci → release → promote-dev → promote-staging → gate-prod → promote-prod</code> chain, green end to end, with the signed image landing in ECR.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/ci-conventions-check.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/ci-conventions-check.jpeg" alt="GitHub Actions run: the delivery-conventions check passing on a shared-agent-assets pull request">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The reusable-workflow conventions gate, enforced on every pull request across the organization.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/gitops-promotion-pr.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/gitops-promotion-pr.jpeg" alt="GitHub pull request: a digest-only promotion of auth-api to the economical prod overlay, awaiting human approval">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">A promotion pull request changing exactly one digest in the prod overlay — nothing else in the diff.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/slack-approval-gateway.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/slack-approval-gateway.jpeg" alt="Slack message from the approval gateway app requesting production deploy approval for log-message-processor, linking the GitHub Actions run">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The Slack approval gateway gating a production deploy of <code>log-message-processor</code>, linked back to the run it authorizes.</p>
+      </div>
+      <div class="card reveal">
+        <a class="diagram-link" href="assets/img/evidence/slack-cluster-reactivation.jpeg" target="_blank" rel="noopener">
+          <img src="assets/img/evidence/slack-cluster-reactivation.jpeg" alt="Slack message describing the eks-dev cluster reactivation: fifteen infrastructure components restored after the 2026-09-15 shutdown">
+        </a>
+        <p class="diagram-caption" style="margin-top:12px;">The reviewed change that brought <code>eks-dev</code> and its full infrastructure list back online after the cost-driven shutdown.</p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -570,53 +609,15 @@
       <p class="diagram-caption">Fig. 13 — exactly how the economical runtime is quiesced and rebuilt: snapshot receipts, checksummed evidence, and applies that use a saved plan and nothing else. <span class="diagram-hint">Click to open full size.</span></p>
     </div>
 
-    <div class="section-head reveal" style="margin-bottom:24px;">
-      <h3 style="margin:0;">Evidence: the pipeline, running</h3>
-      <p>Screenshots taken directly from the running GitHub Actions, Slack, and GitOps pull request
-      surfaces — not staged, not rendered for this page.</p>
-    </div>
-
-    <div class="grid grid-3 reveal-group" style="margin-bottom:36px;">
-      <div class="card reveal">
-        <a class="diagram-link" href="assets/img/evidence/pipeline-ci-release-promote.jpeg" target="_blank" rel="noopener">
-          <img src="assets/img/evidence/pipeline-ci-release-promote.jpeg" alt="GitHub Actions run: ci, release, promote-dev, promote-staging, gate-prod and promote-prod all green for auth-api, with the Docker build pushed to ECR">
-        </a>
-        <p class="diagram-caption" style="margin-top:12px;">The full <code>ci → release → promote-dev → promote-staging → gate-prod → promote-prod</code> chain, green end to end, with the signed image landing in ECR.</p>
-      </div>
-      <div class="card reveal">
-        <a class="diagram-link" href="assets/img/evidence/ci-conventions-check.jpeg" target="_blank" rel="noopener">
-          <img src="assets/img/evidence/ci-conventions-check.jpeg" alt="GitHub Actions run: the delivery-conventions check passing on a shared-agent-assets pull request">
-        </a>
-        <p class="diagram-caption" style="margin-top:12px;">The reusable-workflow conventions gate, enforced on every pull request across the organization.</p>
-      </div>
-      <div class="card reveal">
-        <a class="diagram-link" href="assets/img/evidence/gitops-promotion-pr.jpeg" target="_blank" rel="noopener">
-          <img src="assets/img/evidence/gitops-promotion-pr.jpeg" alt="GitHub pull request: a digest-only promotion of auth-api to the economical prod overlay, awaiting human approval">
-        </a>
-        <p class="diagram-caption" style="margin-top:12px;">A promotion pull request changing exactly one digest in the prod overlay — nothing else in the diff.</p>
-      </div>
-      <div class="card reveal">
-        <a class="diagram-link" href="assets/img/evidence/slack-approval-gateway.jpeg" target="_blank" rel="noopener">
-          <img src="assets/img/evidence/slack-approval-gateway.jpeg" alt="Slack message from the approval gateway app requesting production deploy approval for log-message-processor, linking the GitHub Actions run">
-        </a>
-        <p class="diagram-caption" style="margin-top:12px;">The Slack approval gateway gating a production deploy of <code>log-message-processor</code>, linked back to the run it authorizes.</p>
-      </div>
-      <div class="card reveal">
-        <a class="diagram-link" href="assets/img/evidence/slack-cluster-reactivation.jpeg" target="_blank" rel="noopener">
-          <img src="assets/img/evidence/slack-cluster-reactivation.jpeg" alt="Slack message describing the eks-dev cluster reactivation: fifteen infrastructure components restored after the 2026-09-15 shutdown">
-        </a>
-        <p class="diagram-caption" style="margin-top:12px;">The reviewed change that brought <code>eks-dev</code> and its full infrastructure list back online after the cost-driven shutdown.</p>
-      </div>
-    </div>
-
     <div class="evidence-panel reveal">
       <h3>How to verify these claims independently</h3>
       <p class="prose">The status above is not a summary written from memory — it is read from an operator-facing
       status document and the dated evidence runs under
       <code>microservice-app-gitops/evidence/runs/</code>, cross-checked against the pull requests and
-      Actions runs shown above. Data-continuity limits (Redis is intentionally ephemeral pending a
-      separate continuity design) and the rollout order and repository-ownership rules that govern
-      the platform live in <code>microservice-app-docs/full-platform/</code>.</p>
+      Actions runs shown in the <a href="#delivery">Delivery</a> section above. Data-continuity limits
+      (Redis is intentionally ephemeral pending a separate continuity design) and the rollout order
+      and repository-ownership rules that govern the platform live in
+      <code>microservice-app-docs/full-platform/</code>.</p>
     </div>
   </div>
 </section>
